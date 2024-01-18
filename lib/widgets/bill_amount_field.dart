@@ -4,7 +4,7 @@ class BillAmountField extends StatelessWidget {
   const BillAmountField({
     Key? key,
     required this.billTotal,
-    required this.onChanged,
+    required this.onChanged, //test
   }) : super(key: key);
 
   final String billTotal;
