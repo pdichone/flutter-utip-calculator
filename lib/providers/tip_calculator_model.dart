@@ -12,7 +12,7 @@ class TipCalculatorModel with ChangeNotifier {
 
   void updateBillTotal(double billTotal) {
     _billTotal = billTotal;
-    print("update $_billTotal");
+
     notifyListeners();
   }
 
