@@ -1,13 +1,15 @@
-import 'dart:js_interop';
-
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:utip/providers/tip_calculator_model.dart';
 import 'package:utip/widgets/bill_amount_field.dart';
 import 'package:utip/widgets/person_counter.dart';
 import 'package:utip/widgets/tip_slider.dart';
 import 'package:utip/widgets/total_per_person.dart';
 
 void main() {
-  runApp(const MyApp());
+  // runApp(const MyApp()); // This is the original code
+  runApp(ChangeNotifierProvider(
+      create: (context) => TipCalculatorModel(), child: const MyApp()));
 }
 
 class MyApp extends StatefulWidget {
@@ -57,15 +59,16 @@ class _UTipState extends State<UTip> {
   int _personCount = 1;
   double _tipPercentage = 0.00;
 
-  double _totalPerPerson(double billAmount, int splitBy, double tipPercentage) {
-    var totalTip = billAmount * tipPercentage;
-    var total = billAmount + totalTip;
-    return total / splitBy;
-  }
+  // double _totalPerPerson(double billAmount, int splitBy, double tipPercentage) {
+  //   var totalTip = billAmount * tipPercentage;
+  //   var total = billAmount + totalTip;
+  //   return total / splitBy;
+  // }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final model = Provider.of<TipCalculatorModel>(context); // Add this line
 
     // Add style
     final style = theme.textTheme.titleMedium!.copyWith(
@@ -94,9 +97,13 @@ class _UTipState extends State<UTip> {
             TotalPerPerson(
               theme: theme,
               style: style,
-              billTotal: _billTotal,
-              tipPercentage: _tipPercentage,
-              personCount: _personCount,
+              billTotal: model.billTotal,
+              tipPercentage: model.tipPercentage,
+              personCount: model.personCount,
+              // old code
+              // billTotal: _billTotal,
+              // tipPercentage: _tipPercentage,
+              // personCount: _personCount,
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
@@ -114,12 +121,15 @@ class _UTipState extends State<UTip> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     BillAmountField(
-                        billTotal: _billTotal.toString(),
+                        billTotal:
+                            model.billTotal.toString(), //_billTotal.toString(),
                         onChanged: (value) {
                           try {
-                            setState(() {
-                              _billTotal = double.parse(value);
-                            });
+                            // using provider
+                            model.updateBillTotal(double.parse(value));
+                            // setState(() {
+                            //   _billTotal = double.parse(value);
+                            // });
                           } catch (e) {
                             // handle error for invalid input
                           }
@@ -130,19 +140,24 @@ class _UTipState extends State<UTip> {
 
                     // Split Section == Refactored
                     PersonSplit(
-                      theme: theme,
-                      personCount: _personCount,
-                      onDecrement: () {
-                        setState(() {
-                          if (_personCount > 1) {
-                            _personCount--;
+                        theme: theme,
+                        personCount: model.personCount, //_personCount,
+                        onDecrement: () {
+                          if (model.personCount > 1) {
+                            model.updatePersonCount(model.personCount - 1);
                           }
-                        });
-                      },
-                      onIncrement: () => setState(() {
-                        _personCount++;
-                      }),
-                    ),
+                          // setState(() {
+                          //   if (_personCount > 1) {
+                          //     _personCount--;
+                          //   }
+                          // });
+                        },
+                        onIncrement: () => model.updatePersonCount(
+                            model.personCount + 1) // using provider,
+                        // onIncrement: () => setState(() {
+                        //   _personCount++;
+                        // }),
+                        ),
 
                     // Tip Section
                     Row(
@@ -153,7 +168,7 @@ class _UTipState extends State<UTip> {
                           style: theme.textTheme.titleMedium,
                         ),
                         Text(
-                          '\$${(_billTotal * _tipPercentage).toStringAsFixed(2)}',
+                          '\$${(model.billTotal * model.tipPercentage).toStringAsFixed(2)}',
                           style: theme.textTheme.titleMedium,
                         ),
                       ],
@@ -162,14 +177,15 @@ class _UTipState extends State<UTip> {
                       height: 10,
                     ),
                     // Slider
-                    Text('${_tipPercentage * 100}%'),
+                    Text('${model.tipPercentage * 100}%'),
                     // === Refactored ===
                     TipSlider(
-                        tipPercentage: _tipPercentage,
+                        tipPercentage: model.tipPercentage,
                         onChanged: (value) {
-                          setState(() {
-                            _tipPercentage = value;
-                          });
+                          model.updateTipPercentage(value);
+                          // setState(() {
+                          //   _tipPercentage = value;
+                          // });
                         }),
                   ],
                 ),
