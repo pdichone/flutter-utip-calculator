@@ -1,4 +1,10 @@
+import 'dart:js_interop';
+
 import 'package:flutter/material.dart';
+import 'package:utip/widgets/bill_amount_field.dart';
+import 'package:utip/widgets/person_counter.dart';
+import 'package:utip/widgets/tip_slider.dart';
+import 'package:utip/widgets/total_per_person.dart';
 
 void main() {
   runApp(const MyApp());
@@ -84,37 +90,13 @@ class _UTipState extends State<UTip> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            //total per person display
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withAlpha(150),
-                  // color: Colors.purple.shade100,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                //TODO:  ==== REFACTOR: at the end of the video, refactor this into its own widget!
-                // === Use VScode refactor shortcut - cmd + . refactor into its own widget ===
-                child: Column(
-                  children: [
-                    Text(
-                      'Total Per Person',
-                      textAlign: TextAlign.center,
-                      style: style,
-                    ),
-                    Text(
-                      '\$${(_billTotal * _tipPercentage).toStringAsFixed(2)}',
-                      textAlign: TextAlign.center,
-                      style: style.copyWith(
-                        color: theme.colorScheme.onPrimary,
-                        fontSize: theme.textTheme.displaySmall!.fontSize! * 0.8,
-                      ),
-                    ) //theme.textTheme.titleMedium,
-                  ],
-                ),
-                // === refactor into its own widget ===
-              ),
+            //total per person display = Refactored!
+            TotalPerPerson(
+              theme: theme,
+              style: style,
+              billTotal: _billTotal,
+              tipPercentage: _tipPercentage,
+              personCount: _personCount,
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
@@ -131,70 +113,37 @@ class _UTipState extends State<UTip> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    TextField(
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.attach_money),
-                        labelText: 'Bill Amount',
-                      ),
-                      // keyboardAppearance: Brightness.dark,
-                      keyboardType: TextInputType.number,
-                      onChanged: (value) {
-                        try {
-                          setState(() {
-                            _billTotal = double.parse(value);
-                          });
-                        } catch (e) {
-                          // handle error for invalid input
-                        }
-                      },
-                    ),
+                    BillAmountField(
+                        billTotal: _billTotal.toString(),
+                        onChanged: (value) {
+                          try {
+                            setState(() {
+                              _billTotal = double.parse(value);
+                            });
+                          } catch (e) {
+                            // handle error for invalid input
+                          }
+                        }),
                     const SizedBox(
                       height: 20,
                     ),
 
-                    // Split Section
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Split',
-                          style: theme.textTheme.titleMedium,
-                        ),
-                        Row(
-                          children: [
-                            IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  if (_personCount > 1) {
-                                    _personCount--;
-                                  }
-                                });
-                              },
-                              icon: Icon(
-                                Icons.remove,
-                                color: theme.colorScheme.primary,
-                              ),
-                            ),
-                            Text(
-                              '$_personCount',
-                              style: theme.textTheme.titleMedium,
-                            ),
-                            IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  _personCount++;
-                                });
-                              },
-                              icon: Icon(
-                                Icons.add,
-                                color: theme.colorScheme.primary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                    // Split Section == Refactored
+                    PersonSplit(
+                      theme: theme,
+                      personCount: _personCount,
+                      onDecrement: () {
+                        setState(() {
+                          if (_personCount > 1) {
+                            _personCount--;
+                          }
+                        });
+                      },
+                      onIncrement: () => setState(() {
+                        _personCount++;
+                      }),
                     ),
+
                     // Tip Section
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -214,18 +163,14 @@ class _UTipState extends State<UTip> {
                     ),
                     // Slider
                     Text('${_tipPercentage * 100}%'),
-                    Slider(
-                      value: _tipPercentage,
-                      onChanged: (value) {
-                        setState(() {
-                          _tipPercentage = value;
-                        });
-                      },
-                      min: 0,
-                      max: 0.5,
-                      divisions: 5,
-                      label: '${(_tipPercentage * 100).round()}%',
-                    ),
+                    // === Refactored ===
+                    TipSlider(
+                        tipPercentage: _tipPercentage,
+                        onChanged: (value) {
+                          setState(() {
+                            _tipPercentage = value;
+                          });
+                        }),
                   ],
                 ),
               ),
